@@ -1,0 +1,277 @@
+---
+title: "Doors-Experiment 2"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(plyr)
+library(BayesFactor)
+library(MCMCpack)
+library(lsr)
+library(cowplot)
+library(ggsignif)
+library(ggthemes)
+library(RColorBrewer)
+```
+
+## Experiment 2: 2 animals vs. 8 animals
+
+This is the analysis for our second doors experiment, where children show increased motivation, i.e. search longer, if they can gain more information. In this first experiment, 49 children were asked to search for an animal by opening doors. Crucially, the animal never appears but we manipulated the number of possible animals the final animal could be, i.e. 1 vs. 8. The prediction is that finding out which of 8 animals it would be is more informative than knowing the animal from the start. Thus, children should search longer in the 8 animals condition.
+
+## Demographics
+
+Let's start with the demographics.
+
+```{r}
+#read in data
+dexp2<-read.csv("exp2.csv")
+
+#head of the data frame
+head(dexp2)
+
+#demographics
+##gender
+table(dexp2$gender)
+##age in months
+mean(na.omit(dexp2$age))
+sd(na.omit(dexp2$age))
+```
+
+## Group comparisons
+
+Next, we will compare the two groups based on the number of doors they opened.
+
+```{r}
+ttestBF(subset(dexp2, condition=="2-animals")$ndoors, 
+        subset(dexp2, condition=="8-animals")$ndoors,
+        nullInterval=c(-Inf,0))
+
+cohensD(subset(dexp2, condition=="2-animals")$ndoors, 
+        subset(dexp2, condition=="8-animals")$ndoors)
+
+t.test(subset(dexp2, condition=="2-animals")$ndoors, 
+       subset(dexp2, condition=="8-animals")$ndoors,
+       nullInterval=c(-Inf,0), 
+       var.equal = TRUE)
+
+```
+
+Now we compare the two groups based on the latency until they looked away.
+
+```{r}
+ttestBF(na.omit(subset(dexp2, condition=="2-animals")$latency), 
+        na.omit(subset(dexp2, condition=="8-animals")$latency),
+        nullInterval=c(-Inf,0))
+
+cohensD(na.omit(subset(dexp2, condition=="2-animals")$latency), 
+        na.omit(subset(dexp2, condition=="8-animals")$latency))
+
+t.test(na.omit(subset(dexp2, condition=="2-animals")$latency), 
+       na.omit(subset(dexp2, condition=="8-animals")$latency),
+       nullInterval=c(-Inf,0), 
+       var.equal = TRUE)
+
+```
+We also check the number of children who played the game until they were stopped.
+
+```{r}
+chisq.test(table(dexp2$completion==1, dexp2$condition=="8-animals"))
+
+contingencyTableBF(table(dexp2$completion==1, dexp2$condition=="8-animals"),
+                   sampleType = "indepMulti", 
+                   fixedMargin = "cols")
+```
+
+Finally, we are also testing for differences when controlling for age.
+
+```{r}
+m<-MCMCregress(ndoors~age+condition, data=dexp2)
+summary(m)
+```
+
+## Plotting
+
+Finally, let's do some plotting. We begin by setting up some basic plotting functions.
+
+```{r}
+#standard errors
+se<-function(x){sd(x)/sqrt(length(x))}
+
+#data summary function
+data_summary <- function(x) {
+  m <- mean(x, na.rm=TRUE)
+  sem <-sd(x, na.rm=TRUE)/sqrt(sum(!is.na(x)))
+  ymin<-m-1.96*sem
+  ymax<-m+1.96*sem
+  return(c(y=m,ymin=ymin,ymax=ymax))
+}
+
+#position dodge
+pd<-position_dodge(0.1)
+
+#my palette
+mypalette<-brewer.pal(7,"Dark2")
+```
+
+```{r}
+#standard errors
+se<-function(x){sd(x)/sqrt(length(x))}
+
+#data summary function
+data_summary <- function(x) {
+  m <- mean(x, na.rm=TRUE)
+  sem <-sd(x, na.rm=TRUE)/sqrt(sum(!is.na(x)))
+  ymin<-m-1.96*sem
+  ymax<-m+1.96*sem
+  return(c(y=m,ymin=ymin,ymax=ymax))
+}
+
+#binomial function
+mybinomfunc<-function(x, mark){
+  b1<-binom.test(sum(x==mark), length(x), p=1/2, conf.level=0.95)
+  dout<-data.frame(state=mark, p=as.numeric(b1$estimate), clow=b1$conf.int[1], cup=b1$conf.int[2])
+  return(dout)
+}
+
+#position dodge
+pd1<-position_dodge(0.1)
+pd2<-position_dodge(0.01)
+
+#my palette
+mypalette<-brewer.pal(2,"Dark2")
+```
+
+
+```{r}
+#point data frame
+dpoint<-data.frame(Condition=dexp2$condition, doors=dexp2$ndoors)
+
+#mark conditions
+dpoint$Condition<-factor(dpoint$Condition, levels=c("2-animals", "8-animals"))
+
+#summarized points
+dm<-ddply(dpoint, ~Condition, summarize, m=mean(doors), se=se(doors))
+
+#reshape summary data frame
+dsum<-data.frame(m=dm$m,Conditionl=dm$Condition,ymin=dm$m-dm$se, ymax=dm$m+dm$se)
+
+#let's plot it
+p1<-ggplot(dpoint, aes(x =Condition, y = doors, fill=Condition, color=Condition))+
+  #dot plots
+  geom_dotplot(binaxis='y', stackdir='center',stackratio=1.5, dotsize=4, binwidth=0.5, position=pd1, alpha=0.5) +
+  #summary function
+  stat_summary(fun.data=data_summary, color="grey30", size=1, alpha=0.75)+
+  #minimal theme
+  theme_minimal()+ 
+  #change text
+  theme(text = element_text(size=20,  family="sans"))+
+  #colors and fill
+  scale_fill_manual(values =mypalette)+
+  scale_color_manual(values = mypalette)+
+  #write Bayes Factor on top
+  geom_signif(comparisons=list(c("2-animals", "8-animals")), annotations="BF=89.5",
+              y_position = 50, tip_length = 0, vjust=-0.1, col="black", size=1.1, textsize=6) +
+  #label axes
+  xlab("Condition")+ylab("Doors opened")+
+  #scale of ticks
+  scale_y_continuous(breaks=c(0,10,20,30,40,50), limits = c(0,55))+
+  #no legend
+  theme(legend.position="none", strip.background=element_blank(), legend.key=element_rect(color=NA))+
+  #title
+  ggtitle("Persistence")+
+  #various theme changes including reducing white space and adding axes
+  theme(axis.line.x = element_line(color="grey20", size = 1),
+        axis.line.y = element_line(color="grey20", size = 1))
+
+p1
+```
+
+Next, we plot the effect of condition onto latency.
+
+```{r}
+#point data frame
+dpoint<-data.frame(Condition=dexp2$condition, latency=dexp2$latency)
+
+#mark conditions
+dpoint$Condition<-factor(dpoint$Condition, levels=c("2-animals", "8-animals"))
+
+#summarized points
+dm<-ddply(dpoint, ~Condition, summarize, m=mean(latency), se=se(latency))
+
+#reshape summary data frame
+dsum<-data.frame(m=dm$m,Conditionl=dm$Condition,ymin=dm$m-dm$se, ymax=dm$m+dm$se)
+
+p2<-ggplot(dpoint, aes(x =Condition, y = latency, fill=Condition, color=Condition))+
+  #dot plot
+  geom_dotplot(binaxis='y', stackdir='center',stackratio=2, dotsize=4, binwidth=2, position=pd2, alpha=0.5) +
+  #limits
+  ylim(c(0, 220))+
+  #summary function
+  stat_summary(fun.data=data_summary, color="grey30", size=1, alpha=0.75)+
+  #theme and fonts
+  theme_minimal()+ theme(text = element_text(size=20,  family="sans"))+
+  #colors and fill
+  scale_fill_manual(values =mypalette)+
+  scale_color_manual(values = mypalette)+
+  #add Bayes Factor on top
+  geom_signif(comparisons=list(c("2-animals", "8-animals")), annotations="BF=6.4",
+              y_position = 205, tip_length = 0, vjust=-0.1, col="black", size=1.1, textsize=6) +
+  #label axes
+  xlab("Condition")+ylab("Latency in s")+
+  #no legend
+  theme(legend.position="none", strip.background=element_blank(), legend.key=element_rect(color=NA))+
+  #title
+  ggtitle("First signs of leaving")+
+  #various theme changes including reducing white space and adding axes
+  theme(axis.line.x = element_line(color="grey20", size = 1),
+        axis.line.y = element_line(color="grey20", size = 1))
+
+p2
+
+```
+
+Finally, we plot the difference in completion rates.
+
+```{r}
+#subset of data
+dc1<-subset(dexp2, condition=="2-animals")
+dc2<-subset(dexp2, condition=="8-animals")
+
+#apply binomial function
+dp<-rbind(mybinomfunc(dc1$completion, 1), mybinomfunc(dc2$completion, 1))
+#labels state
+dp$state<-c("2-animals", "8-animals")
+
+#let's plot it
+p3 <- ggplot(dp, aes(y=p, x=as.factor(state), fill=as.factor(state))) +
+  #summarize as a bar
+  stat_summary(fun.y = mean, geom = "bar", position = "dodge", color='black', width=0.6) + 
+  #points
+  geom_point()+
+  #error bars
+  geom_errorbar(aes(ymin=clow, ymax=cup),color='black', width = .33, position=position_dodge((width=0.9))) +
+  #label axes
+  ylab("Proportion")+ xlab("Condition")+ 
+  #theme and font change
+  theme_minimal()+ theme(text = element_text(size=20,  family="sans"))+
+  #change color
+  scale_fill_manual(values = mypalette)+
+  #now legend
+  theme(strip.background=element_blank(), legend.key=element_rect(color=NA), legend.position="none")+
+  guides(color=FALSE, shape=FALSE)+
+  #add Bayes Factor above
+  geom_signif(comparisons=list(c("2-animals", "8-animals")), annotations="BF=5.7",
+              y_position = 1.01, tip_length = 0, vjust=-0.1, col="black", size=1.1, textsize=6) +
+  #change y limits
+  scale_y_continuous(expand = c(0,0),
+                     limits = c(0,1.15)) +
+  #change title
+  ggtitle("Completion")+
+  #various theme changes including reducing white space and adding axes
+  theme(axis.line.x = element_line(color="grey20", size = 1),
+        axis.line.y = element_line(color="grey20", size = 1))
+#show plot
+p3
+```
