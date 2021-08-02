@@ -84,14 +84,15 @@ p1<-ggplot(dpoint, aes(x =Condition, y = doors, fill=Condition, color=Condition)
   #label axes
   xlab("Condition")+ylab("Doors opened")+
   #scale of ticks
-  scale_y_continuous(breaks=c(0,10,20,30,40,50), limits = c(0,55))+
+  scale_y_continuous(breaks=c(0,10,20,30,40,50), limits = c(0,58))+
   #no legend
   theme(legend.position="none", strip.background=element_blank(), legend.key=element_rect(color=NA))+
   #title
   ggtitle("Persistence")+
   #various theme changes including reducing white space and adding axes
   theme(axis.line.x = element_line(color="grey20", size = 1),
-        axis.line.y = element_line(color="grey20", size = 1))
+        axis.line.y = element_line(color="grey20", size = 1),
+        plot.title=element_text(face="italic"))
 
 p1
 
@@ -111,7 +112,7 @@ p2<-ggplot(dpoint, aes(x =Condition, y = latency, fill=Condition, color=Conditio
   #dot plot
   geom_dotplot(binaxis='y', stackdir='center',stackratio=2, dotsize=4, binwidth=2, position=pd2, alpha=0.5) +
   #limits
-  ylim(c(0, 220))+
+  ylim(c(0, 230))+
   #summary function
   stat_summary(fun.data=data_summary, color="grey30", size=1, alpha=0.75)+
   #theme and fonts
@@ -130,7 +131,8 @@ p2<-ggplot(dpoint, aes(x =Condition, y = latency, fill=Condition, color=Conditio
   ggtitle("First signs of leaving")+
   #various theme changes including reducing white space and adding axes
   theme(axis.line.x = element_line(color="grey20", size = 1),
-        axis.line.y = element_line(color="grey20", size = 1))
+        axis.line.y = element_line(color="grey20", size = 1),
+        plot.title=element_text(face="italic"))
 
 p2
 
@@ -166,12 +168,13 @@ p3 <- ggplot(dp, aes(y=p, x=as.factor(state), fill=as.factor(state))) +
               y_position = 0.91, tip_length = 0, vjust=-0.1, col="black", size=1.1, textsize=6) +
   #change y limits
   scale_y_continuous(expand = c(0,0),
-                     limits = c(0,1.05)) +
+                     limits = c(0,1.08)) +
   #change title
   ggtitle("Completion")+
   #various theme changes including reducing white space and adding axes
   theme(axis.line.x = element_line(color="grey20", size = 1),
-        axis.line.y = element_line(color="grey20", size = 1))
+        axis.line.y = element_line(color="grey20", size = 1),
+        plot.title=element_text(face="italic"))
 
 p3
 
@@ -207,11 +210,11 @@ p4<-ggplot(dpoint, aes(x =Condition, y = doors, fill=Condition, color=Condition)
   #label axes
   xlab("Condition")+ylab("Doors opened")+
   #scale of ticks
-  scale_y_continuous(breaks=c(0,10,20,30,40,50), limits = c(0,55))+
+  scale_y_continuous(breaks=c(0,10,20,30,40,50), limits = c(0,58))+
   #no legend
   theme(legend.position="none", strip.background=element_blank(), legend.key=element_rect(color=NA))+
   #title
-  ggtitle("Persistence")+
+  ggtitle(" ")+
   #various theme changes including reducing white space and adding axes
   theme(axis.line.x = element_line(color="grey20", size = 1),
         axis.line.y = element_line(color="grey20", size = 1))
@@ -234,7 +237,7 @@ p5<-ggplot(dpoint, aes(x =Condition, y = latency, fill=Condition, color=Conditio
   #dot plot
   geom_dotplot(binaxis='y', stackdir='center',stackratio=2, dotsize=4, binwidth=2, position=pd2, alpha=0.5) +
   #limits
-  scale_y_continuous(limits = c(0,260), breaks = seq(0, 200, by = 50)) +  #summary function
+  scale_y_continuous(limits = c(0,265), breaks = seq(0, 200, by = 50)) +  #summary function
   stat_summary(fun.data=data_summary, color="grey30", size=1, alpha=0.75)+
   #theme and fonts
   theme_minimal()+ theme(text = element_text(size=20,  family="sans"))+
@@ -249,7 +252,7 @@ p5<-ggplot(dpoint, aes(x =Condition, y = latency, fill=Condition, color=Conditio
   #no legend
   theme(legend.position="none", strip.background=element_blank(), legend.key=element_rect(color=NA))+
   #title
-  ggtitle("First signs of leaving")+
+  ggtitle(" ")+
   #various theme changes including reducing white space and adding axes
   theme(axis.line.x = element_line(color="grey20", size = 1),
         axis.line.y = element_line(color="grey20", size = 1))
@@ -287,9 +290,9 @@ p6 <- ggplot(dp, aes(y=p, x=as.factor(state), fill=as.factor(state))) +
               y_position = 1.01, tip_length = 0, vjust=-0.1, col="black", size=1.1, textsize=6) +
   #change y limits
   scale_y_continuous(expand = c(0,0),
-                     limits = c(0,1.15), breaks = seq(0, 1, by = 0.25)) +
+                     limits = c(0,1.18), breaks = seq(0, 1, by = 0.25)) +
   #change title
-  ggtitle("Completion")+
+  ggtitle(" ")+
   #various theme changes including reducing white space and adding axes
   theme(axis.line.x = element_line(color="grey20", size = 1),
         axis.line.y = element_line(color="grey20", size = 1))
@@ -331,14 +334,13 @@ p7<-ggplot(dpoint, aes(x =Condition, y = doors, fill=Condition, color=Condition)
   #no legend
   theme(legend.position="none", strip.background=element_blank(), legend.key=element_rect(color=NA))+
   #title
-  ggtitle("Persistence")+
+  ggtitle(" ")+
   #various theme changes including reducing white space and adding axes
   theme(axis.line.x = element_line(color="grey20", size = 1),
         axis.line.y = element_line(color="grey20", size = 1))
 
 p7
 
-point data frame
 dpoint<-data.frame(Condition=dexp3$condition, latency=dexp3$latency)
 
 #mark conditions
@@ -354,7 +356,7 @@ p8<-ggplot(dpoint, aes(x =Condition, y = latency, fill=Condition, color=Conditio
   #dot plot
   geom_dotplot(binaxis='y', stackdir='center',stackratio=2, dotsize=4, binwidth=2, position=pd2, alpha=0.5) +
   #limits
-  ylim(c(0, 220))+
+  ylim(c(0, 225))+
   #summary function
   stat_summary(fun.data=data_summary, color="grey30", size=1, alpha=0.75)+
   #theme and fonts
@@ -370,7 +372,7 @@ p8<-ggplot(dpoint, aes(x =Condition, y = latency, fill=Condition, color=Conditio
   #no legend
   theme(legend.position="none", strip.background=element_blank(), legend.key=element_rect(color=NA))+
   #title
-  ggtitle("First signs of leaving")+
+  ggtitle(" ")+
   #various theme changes including reducing white space and adding axes
   theme(axis.line.x = element_line(color="grey20", size = 1),
         axis.line.y = element_line(color="grey20", size = 1))
@@ -410,12 +412,19 @@ p9 <- ggplot(dp, aes(y=p, x=as.factor(state), fill=as.factor(state))) +
   scale_y_continuous(expand = c(0,0),
                      limits = c(0,1.05)) +
   #change title
-  ggtitle("Completion")+
+  ggtitle(" ")+
   #various theme changes including reducing white space and adding axes
   theme(axis.line.x = element_line(color="grey20", size = 1),
         axis.line.y = element_line(color="grey20", size = 1))
 p9
 
+library(gridExtra)
 pdf('doors.pdf', width=13, height=10)
-plot_grid(p1, p2, p3, p4, p5, p6, p7, p8, p9, ncol=3)
+grid.arrange( arrangeGrob(p1, p2, p3, top=textGrob("Study 1",gp=gpar(fontsize=24))), 
+              arrangeGrob(p4, p5, p6, top=textGrob("Study 2",gp=gpar(fontsize=24))),
+              arrangeGrob(p7, p8, p9, top=textGrob("Study 3",gp=gpar(fontsize=24))), 
+              ncol=3)
 dev.off()
+
+library(grid)
+library(gridExtra)
